@@ -1,0 +1,15 @@
+[tool.poetry]
+name = "climate-chatbot"
+version = "0.1.0"
+description = ""
+authors = ["DanielPolatajko <danielpolatajko@gmail.com>"]
+readme = "README.md"
+packages = [{include = "climate_chatbot"}]
+
+[tool.poetry.dependencies]
+python = "^3.11"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
