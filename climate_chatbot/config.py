@@ -3,7 +3,7 @@ from pydantic import BaseModel, Field
 
 class Config(BaseModel):
 
-    HUGGINGFACE_MODEL = "nomic-ai/gpt4all-j"
+    HUGGINGFACE_MODEL = "sentence-transformers/all-MiniLM-L6-v2"
     HUGGINGFACE_MODEL_ENDPOINT = f"https://api-inference.huggingface.co/models/{HUGGINGFACE_MODEL}"
     VECTOR_STORE = Field(default="local_vector_store", env="VECTOR_STORE")
 

@@ -1,7 +1,8 @@
+import os
 import sys
 
 from langchain.vectorstores import Chroma
-from langchain.embeddings.huggingface import HuggingFaceEmbeddings
+from langchain.embeddings import HuggingFaceHubEmbeddings
 from langchain.embeddings.openai import OpenAIEmbeddings
 from climate_chatbot.config import config
 from PyPDF2 import PdfReader
@@ -23,7 +24,11 @@ def add_document_to_vector_store(document_path: str, embedding_implementation: s
     if embedding_implementation == "openai":
         embedding = OpenAIEmbeddings()
     else:
-        embedding = HuggingFaceEmbeddings(model_name=config.HUGGINGFACE_MODEL)
+        embedding = HuggingFaceHubEmbeddings(
+            repo_id=config.HUGGINGFACE_MODEL,
+            task="feature-extraction",
+            huggingfacehub_api_token=os.environ['HUGGING_FACE_PAT'],
+        )
     Chroma.from_texts(
       texts=chunks,
       embedding=embedding,
@@ -34,4 +39,11 @@ def add_document_to_vector_store(document_path: str, embedding_implementation: s
 
 if __name__ == "__main__":
     doc_path = sys.argv[1]
-    add_document_to_vector_store(doc_path, "openai")
+    embedding_implementation = sys.argv[2]
+    if embedding_implementation == "openai":
+        os.environ['VECTOR_STORE'] = "local_vector_store_openai"
+    elif embedding_implementation == "hf":
+        os.environ['VECTOR_STORE'] = "local_vector_store_hf"#
+    else:
+        raise ValueError("The second argument must be either 'openai' or 'hf'.")
+    add_document_to_vector_store(doc_path, embedding_implementation)
