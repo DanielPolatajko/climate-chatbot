@@ -15,7 +15,7 @@ def add_document_to_vector_store(document_path: str, embedding_implementation: s
     from langchain.text_splitter import CharacterTextSplitter
     text_splitter = CharacterTextSplitter(
         separator='\n',
-        chunk_size=1300,
+        chunk_size=700,
         chunk_overlap=0
     )
 
@@ -41,9 +41,9 @@ if __name__ == "__main__":
     doc_path = sys.argv[1]
     embedding_implementation = sys.argv[2]
     if embedding_implementation == "openai":
-        os.environ['VECTOR_STORE'] = "local_vector_store_openai"
+        config.VECTOR_STORE = "local_vector_store_openai"
     elif embedding_implementation == "hf":
-        os.environ['VECTOR_STORE'] = "local_vector_store_hf"#
+        config.VECTOR_STORE = "local_vector_store_hf"
     else:
         raise ValueError("The second argument must be either 'openai' or 'hf'.")
     add_document_to_vector_store(doc_path, embedding_implementation)

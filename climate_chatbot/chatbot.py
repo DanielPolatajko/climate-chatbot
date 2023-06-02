@@ -27,13 +27,13 @@ def answer(
     print(f"Start answering based on prompt: {prompt}.")
     if llm_type == "hf":
         embedding = HuggingFaceHubEmbeddings(
-            repo_id="sentence-transformers/all-mpnet-base-v2",
+            repo_id=config.HUGGINGFACE_MODEL,
             task="feature-extraction",
             huggingfacehub_api_token=os.environ['HUGGING_FACE_PAT'],
         )
         llm = HuggingFaceHub(
-            repo_id=config.HUGGINGFACE_MODEL,
-            model_kwargs={"temperature": 0, "max_tokens": 300},
+            repo_id="google/flan-t5-xxl",
+            model_kwargs={"temperature": 0.1, "max_length": 300},
             huggingfacehub_api_token=os.environ['HUGGING_FACE_PAT'],
         )
     elif llm_type == "openai":
@@ -68,9 +68,9 @@ def answer(
 if __name__ == "__main__":
     llm_type = sys.argv[1]
     if llm_type == "hf":
-        os.environ['VECTOR_STORE'] = "local_vector_store_hf"
+        config.VECTOR_STORE = "local_vector_store_hf"
     elif llm_type == "openai":
-        os.environ['VECTOR_STORE'] = "local_vector_store_openai"
+        config.VECTOR_STORE = "local_vector_store_openai"
     else:
         raise ValueError("The first argument must be either 'openai' or 'hf'.")
     prompt = "What are some examples of policy-related transition risks?"
