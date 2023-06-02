@@ -3,8 +3,9 @@ from pydantic import BaseModel, Field
 
 class Config(BaseModel):
     HUGGINGFACE_MODEL = "sentence-transformers/all-MiniLM-L6-v2"
-    HUGGINGFACE_MODEL_ENDPOINT = f"https://api-inference.huggingface.co/models/{HUGGINGFACE_MODEL}"
-    VECTOR_STORE = Field(default="local_vector_store", env="VECTOR_STORE")
+    HUGGINGFACE_MODEL_ENDPOINT = (
+        f"https://api-inference.huggingface.co/models/{HUGGINGFACE_MODEL}"
+    )
 
     PROMPT_TEMPLATE = """You are a Bot assistant answering any questions about documents.
     You are given a question and a set of documents.
