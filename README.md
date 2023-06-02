@@ -9,4 +9,4 @@ This project is a chatbot application designed to assist with the reading of cli
 3) Download the TCFD recommendations PDF from their website
 4) Run `poetry run python -m climate_chatbot.vector_store <path> hf` with the path to the TCFD PDF to populate the vector store with the TCFD recommendations.
 5) Run `poetry run python -m climate_chatbot.chatbot hf` to watch it answer a question about transition risk.
-6) Get an OpenAI API key and repeat the above, replacing `hf` with `openai` (this will cost small amounts of money, but will be quicker abd probably better)
+6) Get an OpenAI API key and repeat the above, replacing `hf` with `openai` (this will cost small amounts of money, but will be quicker and probably better)

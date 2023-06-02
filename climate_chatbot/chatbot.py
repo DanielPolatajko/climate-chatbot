@@ -11,6 +11,7 @@ from langchain.chains import RetrievalQA
 from langchain.llms import OpenAI, HuggingFaceHub
 from langchain.chains.question_answering import load_qa_chain
 
+
 def answer(
     prompt: str,
     llm_type: str,
@@ -29,17 +30,17 @@ def answer(
         embedding = HuggingFaceHubEmbeddings(
             repo_id=config.HUGGINGFACE_MODEL,
             task="feature-extraction",
-            huggingfacehub_api_token=os.environ['HUGGING_FACE_PAT'],
+            huggingfacehub_api_token=os.environ["HUGGING_FACE_PAT"],
         )
         llm = HuggingFaceHub(
             repo_id="google/flan-t5-xxl",
             model_kwargs={"temperature": 0.1, "max_length": 300},
-            huggingfacehub_api_token=os.environ['HUGGING_FACE_PAT'],
+            huggingfacehub_api_token=os.environ["HUGGING_FACE_PAT"],
         )
     elif llm_type == "openai":
         embedding = OpenAIEmbeddings()
         llm = OpenAI(
-            openai_api_key=os.environ['OPENAI_API_KEY'],
+            openai_api_key=os.environ["OPENAI_API_KEY"],
             model_name="text-davinci-003",
             temperature=0,
             max_tokens=300,
@@ -54,10 +55,7 @@ def answer(
         prompt=prompt_template,
     )
 
-    qa = RetrievalQA(
-        combine_documents_chain=doc_chain,
-        retriever=vectorstore.as_retriever()
-    )
+    qa = RetrievalQA(combine_documents_chain=doc_chain, retriever=vectorstore.as_retriever())
     result = qa({"query": prompt})
     answer = result["result"]
     print(f"The returned answer is: {answer}")

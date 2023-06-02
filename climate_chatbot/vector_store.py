@@ -7,17 +7,15 @@ from langchain.embeddings.openai import OpenAIEmbeddings
 from climate_chatbot.config import config
 from PyPDF2 import PdfReader
 
-def add_document_to_vector_store(document_path: str, embedding_implementation: str):
+
+def add_document_to_vector_store(document_path: str, embedding_implementation: str) -> None:
     reader = PdfReader(document_path)
     page_texts = [page.extract_text() for page in reader.pages]
     text = " ".join(page_texts)
 
     from langchain.text_splitter import CharacterTextSplitter
-    text_splitter = CharacterTextSplitter(
-        separator='\n',
-        chunk_size=700,
-        chunk_overlap=0
-    )
+
+    text_splitter = CharacterTextSplitter(separator="\n", chunk_size=700, chunk_overlap=0)
 
     chunks = text_splitter.split_text(text)
 
@@ -27,13 +25,9 @@ def add_document_to_vector_store(document_path: str, embedding_implementation: s
         embedding = HuggingFaceHubEmbeddings(
             repo_id=config.HUGGINGFACE_MODEL,
             task="feature-extraction",
-            huggingfacehub_api_token=os.environ['HUGGING_FACE_PAT'],
+            huggingfacehub_api_token=os.environ["HUGGING_FACE_PAT"],
         )
-    Chroma.from_texts(
-      texts=chunks,
-      embedding=embedding,
-      persist_directory=config.VECTOR_STORE
-    )
+    Chroma.from_texts(texts=chunks, embedding=embedding, persist_directory=config.VECTOR_STORE)
     print(f"All documents were processed and saved in {config.VECTOR_STORE}.")
 
 
