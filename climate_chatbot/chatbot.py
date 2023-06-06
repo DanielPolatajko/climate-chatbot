@@ -24,18 +24,12 @@ def answer(prompt: str, llm_type: str, vector_store_name: str) -> str:
     """
     print(f"Start answering based on prompt: {prompt}.")
     if llm_type == "hf":
-        embedding = HuggingFaceHubEmbeddings(
-            repo_id=config.HUGGINGFACE_MODEL,
-            task="feature-extraction",
-            huggingfacehub_api_token=os.environ["HUGGING_FACE_PAT"],
-        )
         llm = HuggingFaceHub(
             repo_id="google/flan-t5-xxl",
             model_kwargs={"temperature": 0.1, "max_length": 300},
             huggingfacehub_api_token=os.environ["HUGGING_FACE_PAT"],
         )
     elif llm_type == "openai":
-        embedding = OpenAIEmbeddings()
         llm = OpenAI(
             openai_api_key=os.environ["OPENAI_API_KEY"],
             model_name="text-davinci-003",
@@ -44,6 +38,16 @@ def answer(prompt: str, llm_type: str, vector_store_name: str) -> str:
         )
     else:
         raise ValueError("Invalid LLM type.")
+    if vector_store_name == "local_vector_store_openai":
+        embedding = OpenAIEmbeddings()
+    elif vector_store_name == "local_vector_store_hf":
+        embedding = HuggingFaceHubEmbeddings(
+            repo_id=config.HUGGINGFACE_MODEL,
+            task="feature-extraction",
+            huggingfacehub_api_token=os.environ["HUGGING_FACE_PAT"],
+        )
+    else:
+        raise ValueError("Invalid vector store name.")
     vector_store = Chroma(
         persist_directory=vector_store_name, embedding_function=embedding
     )
@@ -57,10 +61,11 @@ def answer(prompt: str, llm_type: str, vector_store_name: str) -> str:
     )
 
     qa = RetrievalQA(
-        combine_documents_chain=doc_chain, retriever=vector_store.as_retriever()
+        combine_documents_chain=doc_chain, retriever=vector_store.as_retriever(), return_source_documents=True
     )
     result = qa({"query": prompt})
     answer = result["result"]
+    print(result["source_documents"])
     print(f"The returned answer is: {answer}")
     print(f"Answering module over.")
     return answer
@@ -68,11 +73,14 @@ def answer(prompt: str, llm_type: str, vector_store_name: str) -> str:
 
 if __name__ == "__main__":
     llm_type = sys.argv[1]
-    if llm_type == "hf":
+    if llm_type not in ["hf", "openai"]:
+        raise ValueError("The first argument must be either 'openai' or 'hf'.")
+    vector_store = sys.argv[2]
+    if vector_store == "hf":
         vector_store_name = "local_vector_store_hf"
-    elif llm_type == "openai":
+    elif vector_store == "openai":
         vector_store_name = "local_vector_store_openai"
     else:
-        raise ValueError("The first argument must be either 'openai' or 'hf'.")
+        raise ValueError("The second argument must be either 'openai' or 'hf'.")
     prompt = "What are some examples of policy-related transition risks?"
     answer(prompt, llm_type, vector_store_name)
