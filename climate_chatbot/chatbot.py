@@ -12,17 +12,17 @@ from langchain.llms import OpenAI, HuggingFaceHub
 from langchain.chains.question_answering import load_qa_chain
 
 
-def answer(prompt: str, llm_type: str, vector_store_name: str) -> str:
+def answer(question: str, llm_type: str, vector_store_name: str) -> str:
     """From a question asked by the user, generate the answer based on the vectorstore.
 
     Args:
-        prompt (str): Question asked by the user.
+        question (str): Question asked by the user.
         vector_store_name (str): Vectorstore directory.
 
     Returns:
         str: Answer generated with the LLM
     """
-    print(f"Start answering based on prompt: {prompt}.")
+    print(f"Start answering based on prompt: {question}.")
     if llm_type == "hf":
         llm = HuggingFaceHub(
             repo_id="google/flan-t5-xxl",
@@ -63,9 +63,8 @@ def answer(prompt: str, llm_type: str, vector_store_name: str) -> str:
     qa = RetrievalQA(
         combine_documents_chain=doc_chain, retriever=vector_store.as_retriever(), return_source_documents=True
     )
-    result = qa({"query": prompt})
+    result = qa({"query": question})
     answer = result["result"]
-    print(result["source_documents"])
     print(f"The returned answer is: {answer}")
     print(f"Answering module over.")
     return answer

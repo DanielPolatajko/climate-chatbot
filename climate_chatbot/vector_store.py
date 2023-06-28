@@ -15,13 +15,13 @@ def add_document_to_vector_store(
 ) -> None:
     reader = PdfReader(document_path)
     page_texts = [page.extract_text() for page in reader.pages]
-    text = " ".join(page_texts)
+    text = "".join(page_texts)
 
     spacy.load('en_core_web_sm')
 
     text_splitter = SpacyTextSplitter(
         separator="\n",
-        chunk_size=200,
+        chunk_size=1000,
     )
 
     chunks = text_splitter.split_text(text)
