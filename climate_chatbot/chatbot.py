@@ -70,7 +70,6 @@ def answer(prompt: str, llm_type: str, vector_store_name: str, k: int = 5) -> st
         ]]
     ).generations[0][0].text
 
-    print(f"Sample answer: {sample_answer}")
     result = qa({"query": sample_answer})
 
     answer = result["result"]
@@ -87,5 +86,5 @@ if __name__ == "__main__":
         vector_store_name = "local_vector_store_openai"
     else:
         raise ValueError("The first argument must be either 'openai' or 'hf'.")
-    prompt = "What are some examples of policy-related transition risks?"
+    prompt = "What do I need to include in my TCFD report in the governance section?"
     answer(prompt, llm_type, vector_store_name)
