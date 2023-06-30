@@ -9,10 +9,12 @@ from climate_chatbot.config import config
 from langchain.vectorstores import Chroma
 from langchain.chains import RetrievalQA
 from langchain.llms import OpenAI, HuggingFaceHub
+from langchain.chat_models import ChatOpenAI
 from langchain.chains.question_answering import load_qa_chain
+from langchain.schema import HumanMessage
 
 
-def answer(question: str, llm_type: str, vector_store_name: str) -> str:
+def answer(prompt: str, llm_type: str, vector_store_name: str, k: int = 5) -> str:
     """From a question asked by the user, generate the answer based on the vectorstore.
 
     Args:
@@ -30,11 +32,9 @@ def answer(question: str, llm_type: str, vector_store_name: str) -> str:
             huggingfacehub_api_token=os.environ["HUGGING_FACE_PAT"],
         )
     elif llm_type == "openai":
-        llm = OpenAI(
+        llm = ChatOpenAI(
             openai_api_key=os.environ["OPENAI_API_KEY"],
-            model_name="text-davinci-003",
-            temperature=0,
-            max_tokens=300,
+            model_name="gpt-3.5-turbo",
         )
     else:
         raise ValueError("Invalid LLM type.")
@@ -52,7 +52,7 @@ def answer(question: str, llm_type: str, vector_store_name: str) -> str:
         persist_directory=vector_store_name, embedding_function=embedding
     )
     prompt_template = PromptTemplate(
-        template=config.PROMPT_TEMPLATE, input_variables=["context", "question"]
+        template=config.PROMPT_TEMPLATE.replace("{question}", prompt), input_variables=["context"]
     )
     doc_chain = load_qa_chain(
         llm=llm,
@@ -61,9 +61,21 @@ def answer(question: str, llm_type: str, vector_store_name: str) -> str:
     )
 
     qa = RetrievalQA(
-        combine_documents_chain=doc_chain, retriever=vector_store.as_retriever(), return_source_documents=True
+        combine_documents_chain=doc_chain, retriever=vector_store.as_retriever(search_kwargs={"k": k}), return_source_documents=True
     )
-    result = qa({"query": question})
+
+    intermediate_prompt_template = PromptTemplate(
+        template=config.INTERMEDIATE_PROMPT_TEMPLATE, input_variables=["question"]
+    )
+
+    sample_answer = llm.generate(
+        [[
+            HumanMessage(content=intermediate_prompt_template.format(question=prompt))
+        ]]
+    ).generations[0][0].text
+
+    result = qa({"query": sample_answer})
+
     answer = result["result"]
     print(f"The returned answer is: {answer}")
     print(f"Answering module over.")
@@ -80,6 +92,6 @@ if __name__ == "__main__":
     elif vector_store == "openai":
         vector_store_name = "local_vector_store_openai"
     else:
-        raise ValueError("The second argument must be either 'openai' or 'hf'.")
-    prompt = "What are some examples of policy-related transition risks?"
+        raise ValueError("The first argument must be either 'openai' or 'hf'.")
+    prompt = "What do I need to include in my TCFD report in the governance section?"
     answer(prompt, llm_type, vector_store_name)
