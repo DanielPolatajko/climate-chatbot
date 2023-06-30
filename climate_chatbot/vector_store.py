@@ -6,6 +6,8 @@ from langchain.embeddings import HuggingFaceHubEmbeddings
 from langchain.embeddings.openai import OpenAIEmbeddings
 from climate_chatbot.config import config
 from PyPDF2 import PdfReader
+from langchain.text_splitter import CharacterTextSplitter, SpacyTextSplitter
+import spacy
 
 
 def add_document_to_vector_store(
@@ -13,12 +15,13 @@ def add_document_to_vector_store(
 ) -> None:
     reader = PdfReader(document_path)
     page_texts = [page.extract_text() for page in reader.pages]
-    text = " ".join(page_texts)
+    text = "".join(page_texts)
 
-    from langchain.text_splitter import CharacterTextSplitter
+    spacy.load('en_core_web_sm')
 
-    text_splitter = CharacterTextSplitter(
-        separator="\n", chunk_size=700, chunk_overlap=0
+    text_splitter = SpacyTextSplitter(
+        separator="\n",
+        chunk_size=1000,
     )
 
     chunks = text_splitter.split_text(text)

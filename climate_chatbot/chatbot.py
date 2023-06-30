@@ -18,32 +18,36 @@ def answer(prompt: str, llm_type: str, vector_store_name: str, k: int = 5) -> st
     """From a question asked by the user, generate the answer based on the vectorstore.
 
     Args:
-        prompt (str): Question asked by the user.
+        question (str): Question asked by the user.
         vector_store_name (str): Vectorstore directory.
 
     Returns:
         str: Answer generated with the LLM
     """
-    print(f"Start answering based on prompt: {prompt}.")
+    print(f"Start answering based on prompt: {question}.")
     if llm_type == "hf":
-        embedding = HuggingFaceHubEmbeddings(
-            repo_id=config.HUGGINGFACE_MODEL,
-            task="feature-extraction",
-            huggingfacehub_api_token=os.environ["HUGGING_FACE_PAT"],
-        )
         llm = HuggingFaceHub(
             repo_id="google/flan-t5-xxl",
             model_kwargs={"temperature": 0.1, "max_length": 300},
             huggingfacehub_api_token=os.environ["HUGGING_FACE_PAT"],
         )
     elif llm_type == "openai":
-        embedding = OpenAIEmbeddings()
         llm = ChatOpenAI(
             openai_api_key=os.environ["OPENAI_API_KEY"],
             model_name="gpt-3.5-turbo",
         )
     else:
         raise ValueError("Invalid LLM type.")
+    if vector_store_name == "local_vector_store_openai":
+        embedding = OpenAIEmbeddings()
+    elif vector_store_name == "local_vector_store_hf":
+        embedding = HuggingFaceHubEmbeddings(
+            repo_id=config.HUGGINGFACE_MODEL,
+            task="feature-extraction",
+            huggingfacehub_api_token=os.environ["HUGGING_FACE_PAT"],
+        )
+    else:
+        raise ValueError("Invalid vector store name.")
     vector_store = Chroma(
         persist_directory=vector_store_name, embedding_function=embedding
     )
@@ -57,7 +61,7 @@ def answer(prompt: str, llm_type: str, vector_store_name: str, k: int = 5) -> st
     )
 
     qa = RetrievalQA(
-        combine_documents_chain=doc_chain, retriever=vector_store.as_retriever(search_kwargs={"k": k})
+        combine_documents_chain=doc_chain, retriever=vector_store.as_retriever(search_kwargs={"k": k}), return_source_documents=True
     )
 
     intermediate_prompt_template = PromptTemplate(
@@ -80,9 +84,12 @@ def answer(prompt: str, llm_type: str, vector_store_name: str, k: int = 5) -> st
 
 if __name__ == "__main__":
     llm_type = sys.argv[1]
-    if llm_type == "hf":
+    if llm_type not in ["hf", "openai"]:
+        raise ValueError("The first argument must be either 'openai' or 'hf'.")
+    vector_store = sys.argv[2]
+    if vector_store == "hf":
         vector_store_name = "local_vector_store_hf"
-    elif llm_type == "openai":
+    elif vector_store == "openai":
         vector_store_name = "local_vector_store_openai"
     else:
         raise ValueError("The first argument must be either 'openai' or 'hf'.")
