@@ -48,9 +48,7 @@ def answer(prompt: str, llm_type: str, vector_store_name: str, k: int = 5) -> st
         )
     else:
         raise ValueError("Invalid vector store name.")
-    vector_store = Chroma(
-        persist_directory=vector_store_name, embedding_function=embedding
-    )
+    vector_store = Chroma(persist_directory=vector_store_name, embedding_function=embedding)
     prompt_template = PromptTemplate(
         template=config.PROMPT_TEMPLATE.replace("{question}", prompt), input_variables=["context"]
     )
@@ -61,18 +59,20 @@ def answer(prompt: str, llm_type: str, vector_store_name: str, k: int = 5) -> st
     )
 
     qa = RetrievalQA(
-        combine_documents_chain=doc_chain, retriever=vector_store.as_retriever(search_kwargs={"k": k}), return_source_documents=True
+        combine_documents_chain=doc_chain,
+        retriever=vector_store.as_retriever(search_kwargs={"k": k}),
+        return_source_documents=True,
     )
 
     intermediate_prompt_template = PromptTemplate(
         template=config.INTERMEDIATE_PROMPT_TEMPLATE, input_variables=["question"]
     )
 
-    sample_answer = llm.generate(
-        [[
-            HumanMessage(content=intermediate_prompt_template.format(question=prompt))
-        ]]
-    ).generations[0][0].text
+    sample_answer = (
+        llm.generate([[HumanMessage(content=intermediate_prompt_template.format(question=prompt))]])
+        .generations[0][0]
+        .text
+    )
 
     result = qa({"query": sample_answer})
 

@@ -3,9 +3,7 @@ from pydantic import BaseModel, Field
 
 class Config(BaseModel):
     HUGGINGFACE_MODEL = "sentence-transformers/all-MiniLM-L6-v2"
-    HUGGINGFACE_MODEL_ENDPOINT = (
-        f"https://api-inference.huggingface.co/models/{HUGGINGFACE_MODEL}"
-    )
+    HUGGINGFACE_MODEL_ENDPOINT = f"https://api-inference.huggingface.co/models/{HUGGINGFACE_MODEL}"
 
     INTERMEDIATE_PROMPT_TEMPLATE = """
     You are an intermediary in a domain-specific chatbot. The chatbot is designed to answer user questions about climate-related financial disclosures.
@@ -14,7 +12,6 @@ class Config(BaseModel):
     
     QUESTION: {question}
     """
-
 
     PROMPT_TEMPLATE = """
     You are a chatbot assistant answering any questions about climate-related financial disclosures. 

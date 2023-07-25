@@ -10,14 +10,12 @@ from langchain.text_splitter import CharacterTextSplitter, SpacyTextSplitter
 import spacy
 
 
-def add_document_to_vector_store(
-    document_path: str, embedding_implementation: str, vector_store: str
-) -> None:
+def add_document_to_vector_store(document_path: str, embedding_implementation: str, vector_store: str) -> None:
     reader = PdfReader(document_path)
     page_texts = [page.extract_text() for page in reader.pages]
     text = "".join(page_texts)
 
-    spacy.load('en_core_web_sm')
+    spacy.load("en_core_web_sm")
 
     text_splitter = SpacyTextSplitter(
         separator="\n",
@@ -47,4 +45,5 @@ if __name__ == "__main__":
         vector_store = "local_vector_store_hf"
     else:
         raise ValueError("The second argument must be either 'openai' or 'hf'.")
+
     add_document_to_vector_store(doc_path, embedding_implementation, vector_store)
