@@ -1,17 +1,21 @@
+import os
 import sys
 
-import os
-
+from dotenv import dotenv_values
 from langchain import PromptTemplate
+from langchain.chains import RetrievalQA
+from langchain.chains.question_answering import load_qa_chain
+from langchain.chat_models import ChatOpenAI
 from langchain.embeddings import OpenAIEmbeddings, HuggingFaceHubEmbeddings
+from langchain.llms import HuggingFaceHub
+from langchain.vectorstores import Chroma
 
 from climate_chatbot.config import config
-from langchain.vectorstores import Chroma
-from langchain.chains import RetrievalQA
-from langchain.llms import OpenAI, HuggingFaceHub
-from langchain.chat_models import ChatOpenAI
-from langchain.chains.question_answering import load_qa_chain
-from langchain.schema import HumanMessage
+
+_ENV = {
+    **dotenv_values(".env.dev"),  # load dev env variables
+    **os.environ,  # override loaded values with environment variables
+}
 
 
 def answer(prompt: str, llm_type: str, vector_store_name: str, k: int = 5) -> str:
@@ -24,7 +28,7 @@ def answer(prompt: str, llm_type: str, vector_store_name: str, k: int = 5) -> st
     Returns:
         str: Answer generated with the LLM
     """
-    print(f"Start answering based on prompt: {question}.")
+    print(f"Start answering based on prompt: {prompt}.")
     if llm_type == "hf":
         llm = HuggingFaceHub(
             repo_id="google/flan-t5-xxl",
@@ -48,9 +52,12 @@ def answer(prompt: str, llm_type: str, vector_store_name: str, k: int = 5) -> st
         )
     else:
         raise ValueError("Invalid vector store name.")
-    vector_store = Chroma(persist_directory=vector_store_name, embedding_function=embedding)
+    vector_store = Chroma(
+        persist_directory=vector_store_name, embedding_function=embedding
+    )
     prompt_template = PromptTemplate(
-        template=config.PROMPT_TEMPLATE.replace("{question}", prompt), input_variables=["context"]
+        template=config.PROMPT_TEMPLATE.replace("{question}", prompt),
+        input_variables=["context"],
     )
     doc_chain = load_qa_chain(
         llm=llm,
@@ -69,7 +76,7 @@ def answer(prompt: str, llm_type: str, vector_store_name: str, k: int = 5) -> st
     )
 
     sample_answer = (
-        llm.generate([[HumanMessage(content=intermediate_prompt_template.format(question=prompt))]])
+        llm.generate([intermediate_prompt_template.format(question=prompt)])
         .generations[0][0]
         .text
     )
