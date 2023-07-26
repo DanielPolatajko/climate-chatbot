@@ -164,3 +164,4 @@ cython_debug/
 /FINAL-2017-TCFD-Report-11052018.pdf
 
 .terraform
+terraform/secrets.tfvars

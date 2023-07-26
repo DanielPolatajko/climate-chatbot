@@ -9,3 +9,9 @@ variable "profile" {
   type        = string
   default     = "terraform"
 }
+
+variable "github_repo_url" {
+  description = "The GitHub URL where the app code exists"
+  type        = string
+  sensitive   = true
+}

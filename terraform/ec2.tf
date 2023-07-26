@@ -15,10 +15,27 @@ provider "aws" {
 }
 
 resource "aws_instance" "app_server" {
-  ami           = "ami-020737107b4baaa50"
+  ami           = "ami-0443d29a4bc22b3a5"
   instance_type = "t2.micro"
+
+#  TODO - need to get access to logs to see if this is working. After that, get default streamlit app working
+  user_data = <<-EOF
+    #!/bin/bash
+    apt-get update -y
+    apt-get install -y software-properties-common curl git
+    add-apt-repository ppa:deadsnakes/ppa
+    apt-get update -y
+    apt-get install -y python3.10 python3.10-dev python3.10-distutils python3.10-venv
+    curl -sSL https://install.python-poetry.org | python3.10 -
+    git clone ${var.github_repo_url} app
+    cd app
+    poetry env use python3.10
+    poetry install
+    poetry run python climate_chatbot/app.py
+  EOF
 
   tags = {
     Name = "AppServerInstance"
   }
 }
+
