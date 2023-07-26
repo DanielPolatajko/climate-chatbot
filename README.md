@@ -17,3 +17,5 @@ This project is a chatbot application designed to assist with the reading of cli
 * Configure AWS sso to enable both of us to deploy 
 * Terraform - use multiple workspaces
 * Git access token for terraform will expire approx end of september
+* ec2 status checks pass before terraform completes
+* Use commit hash for docker image tag in terraform. Will require input at command line
