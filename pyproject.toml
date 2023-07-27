@@ -17,6 +17,8 @@ sentence-transformers = "^2.2.2"
 huggingface-hub = "^0.15.1"
 spacy = "^3.5.3"
 python-dotenv = "^1.0.0"
+streamlit = "^1.25.0"
+hugchat = "^0.0.8"
 
 
 [tool.poetry.group.dev.dependencies]
