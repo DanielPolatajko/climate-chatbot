@@ -11,19 +11,18 @@ WORKDIR /app
 COPY pyproject.toml poetry.lock ./
 RUN curl -sSL https://install.python-poetry.org | python - --version $POETRY_VERSION
 
-RUN /root/.local/bin/poetry config virtualenvs.create false
-#    && \
-#    /root/.local/bin/poetry install --only main
+RUN /root/.local/bin/poetry config virtualenvs.create false && \
+    /root/.local/bin/poetry install --only main
 
 # Copy the source code into the container
 COPY . .
 
 # Set environment variables required by Streamlit
-#ENV LC_ALL=C.UTF-8
-#ENV LANG=C.UTF-8
+ENV LC_ALL=C.UTF-8
+ENV LANG=C.UTF-8
 
 # Expose the app port
-#EXPOSE 8501
+EXPOSE 8501
 
 # Run the app
-CMD ["/root/.local/bin/poetry", "run", "python", "climate_chatbot/app.py"]
+CMD ["/root/.local/bin/poetry", "run", "streamlit", "run", "climate_chatbot/app.py"]

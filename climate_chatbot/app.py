@@ -1,6 +1,6 @@
 import streamlit as st
 
-from climate_chatbot.chatbot import answer
+from chatbot import answer
 
 # App title
 st.set_page_config(page_title="Climate Chatbot")

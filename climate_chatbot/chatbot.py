@@ -1,6 +1,7 @@
 import os
 
 from dotenv import dotenv_values
+import langchain
 from langchain import PromptTemplate
 from langchain.chains import ConversationalRetrievalChain
 from langchain.chat_models import ChatOpenAI
@@ -8,12 +9,15 @@ from langchain.embeddings import OpenAIEmbeddings, HuggingFaceHubEmbeddings
 from langchain.llms import HuggingFaceHub
 from langchain.vectorstores import Chroma
 
-from climate_chatbot.config import config
+from config import config
 
 _ENV = {
     **dotenv_values(".env.dev"),  # load dev env variables
     **os.environ,  # override loaded values with environment variables
 }
+
+if bool(_ENV["LANGCHAIN_DEBUG"]):
+    langchain.debug = True
 
 # Open AI
 llm_type = "openai"
@@ -58,7 +62,7 @@ prompt_template = PromptTemplate(
     input_variables=["context", "question"],
 )
 
-retriever = vector_store.as_retriever(search_kwargs={"k": k})
+retriever = vector_store.as_retriever(search_type="similarity", search_kwargs={"k": k})
 
 qa = ConversationalRetrievalChain.from_llm(
     llm=llm,
@@ -101,5 +105,5 @@ def answer(prompt: str) -> str:
 
 
 if __name__ == "__main__":
-    prompt = "What do I need to include in my TCFD report in the governance section?"
-    answer(prompt)
+    question = "What do I need to include in my TCFD report in the governance section?"
+    answer(question)

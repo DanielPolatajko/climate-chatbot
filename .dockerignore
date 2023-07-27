@@ -5,3 +5,4 @@
 !/pyproject.toml
 !/poetry.lock
 !/climate_chatbot
+!/local_vector_store_openai
