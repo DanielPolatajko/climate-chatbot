@@ -16,8 +16,6 @@ _ENV = {
     **os.environ,  # override loaded values with environment variables
 }
 
-print(_ENV)
-
 
 def add_document_to_vector_store(
     document_path: str, embedding_implementation: str, vector_store: str
@@ -37,7 +35,7 @@ def add_document_to_vector_store(
     chunks = text_splitter.split_text(text)
 
     if embedding_implementation == "openai":
-        embedding = OpenAIEmbeddings()
+        embedding = OpenAIEmbeddings(openai_api_key=_ENV["OPENAI_API_KEY"])
     else:
         embedding = HuggingFaceHubEmbeddings(
             repo_id=config.HUGGINGFACE_MODEL,

@@ -8,6 +8,7 @@ from langchain.chains.question_answering import load_qa_chain
 from langchain.chat_models import ChatOpenAI
 from langchain.embeddings import OpenAIEmbeddings, HuggingFaceHubEmbeddings
 from langchain.llms import HuggingFaceHub
+from langchain.schema import HumanMessage
 from langchain.vectorstores import Chroma
 
 from climate_chatbot.config import config
@@ -18,11 +19,16 @@ _ENV = {
 }
 
 
-def answer(prompt: str, llm_type: str, vector_store_name: str, k: int = 5) -> str:
+def answer(
+    prompt: str,
+    llm_type: str = "openai",
+    vector_store_name: str = "local_vector_store_openai",
+    k: int = 5,
+) -> str:
     """From a question asked by the user, generate the answer based on the vectorstore.
 
     Args:
-        question (str): Question asked by the user.
+        prompt (str): Question asked by the user.
         vector_store_name (str): Vectorstore directory.
 
     Returns:
@@ -33,17 +39,18 @@ def answer(prompt: str, llm_type: str, vector_store_name: str, k: int = 5) -> st
         llm = HuggingFaceHub(
             repo_id="google/flan-t5-xxl",
             model_kwargs={"temperature": 0.1, "max_length": 300},
-            huggingfacehub_api_token=os.environ["HUGGING_FACE_PAT"],
+            huggingfacehub_api_token=_ENV["HUGGING_FACE_PAT"],
         )
     elif llm_type == "openai":
         llm = ChatOpenAI(
-            openai_api_key=os.environ["OPENAI_API_KEY"],
+            openai_api_key=_ENV["OPENAI_API_KEY"],
             model_name="gpt-3.5-turbo",
+            temperature=0.0,
         )
     else:
         raise ValueError("Invalid LLM type.")
     if vector_store_name == "local_vector_store_openai":
-        embedding = OpenAIEmbeddings()
+        embedding = OpenAIEmbeddings(openai_api_key=_ENV["OPENAI_API_KEY"])
     elif vector_store_name == "local_vector_store_hf":
         embedding = HuggingFaceHubEmbeddings(
             repo_id=config.HUGGINGFACE_MODEL,
@@ -75,11 +82,10 @@ def answer(prompt: str, llm_type: str, vector_store_name: str, k: int = 5) -> st
         template=config.INTERMEDIATE_PROMPT_TEMPLATE, input_variables=["question"]
     )
 
-    sample_answer = (
-        llm.generate([intermediate_prompt_template.format(question=prompt)])
-        .generations[0][0]
-        .text
+    llm_result = llm.generate(
+        [[HumanMessage(content=intermediate_prompt_template.format(question=prompt))]]
     )
+    sample_answer = llm_result.generations[0][0].text
 
     result = qa({"query": sample_answer})
 
