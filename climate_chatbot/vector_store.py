@@ -1,16 +1,16 @@
 import os
 import sys
 
-import spacy
-from PyPDF2 import PdfReader
 from dotenv import dotenv_values
+from langchain.document_loaders import PyPDFLoader
 from langchain.embeddings import HuggingFaceHubEmbeddings
 from langchain.embeddings.openai import OpenAIEmbeddings
-from langchain.text_splitter import SpacyTextSplitter
+from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.vectorstores import Chroma
 
 from climate_chatbot.config import config
 
+# TODO: move this into scripts/ and change some of the deps to dev deps
 _ENV = {
     **dotenv_values(".env.dev"),  # load dev env variables
     **os.environ,  # override loaded values with environment variables
@@ -20,19 +20,14 @@ _ENV = {
 def add_document_to_vector_store(
     document_path: str, embedding_implementation: str, vector_store: str
 ) -> None:
-    reader = PdfReader(document_path)
-    page_texts = [page.extract_text() for page in reader.pages]
-    text = "".join(page_texts)
+    loader = PyPDFLoader(document_path)
+    pages = loader.load()
 
-    # Reminder to run - python -m spacy download en_core_web_sm
-    spacy.load("en_core_web_sm")
-
-    text_splitter = SpacyTextSplitter(
-        separator="\n",
-        chunk_size=1000,
+    text_splitter = RecursiveCharacterTextSplitter(
+        chunk_size=2000,
+        chunk_overlap=200,
     )
-
-    chunks = text_splitter.split_text(text)
+    docs = text_splitter.split_documents(pages)
 
     if embedding_implementation == "openai":
         embedding = OpenAIEmbeddings(openai_api_key=_ENV["OPENAI_API_KEY"])
@@ -42,7 +37,9 @@ def add_document_to_vector_store(
             task="feature-extraction",
             huggingfacehub_api_token=_ENV["HUGGING_FACE_PAT"],
         )
-    Chroma.from_texts(texts=chunks, embedding=embedding, persist_directory=vector_store)
+    Chroma.from_documents(
+        documents=docs, embedding=embedding, persist_directory=vector_store
+    )
     print(f"All documents were processed and saved in {vector_store}.")
 
 
