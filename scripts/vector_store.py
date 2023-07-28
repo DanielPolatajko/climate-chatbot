@@ -2,19 +2,21 @@ import os
 import sys
 
 from dotenv import dotenv_values
+import langchain
 from langchain.document_loaders import PyPDFLoader
 from langchain.embeddings import HuggingFaceHubEmbeddings
 from langchain.embeddings.openai import OpenAIEmbeddings
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.vectorstores import Chroma
 
-from climate_chatbot.config import config
-
-# TODO: move this into scripts/ and change some of the deps to dev deps
 _ENV = {
     **dotenv_values(".env.dev"),  # load dev env variables
     **os.environ,  # override loaded values with environment variables
 }
+
+
+if bool(_ENV["LANGCHAIN_DEBUG"]):
+    langchain.debug = True
 
 
 def add_document_to_vector_store(
@@ -33,7 +35,7 @@ def add_document_to_vector_store(
         embedding = OpenAIEmbeddings(openai_api_key=_ENV["OPENAI_API_KEY"])
     else:
         embedding = HuggingFaceHubEmbeddings(
-            repo_id=config.HUGGINGFACE_MODEL,
+            repo_id="sentence-transformers/all-MiniLM-L6-v2",
             task="feature-extraction",
             huggingfacehub_api_token=_ENV["HUGGING_FACE_PAT"],
         )
