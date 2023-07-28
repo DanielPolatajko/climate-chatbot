@@ -5,6 +5,11 @@ IMAGE_TAG = latest # always overwrite
 
 REPO_URL = $(REGISTRY_ID).dkr.ecr.$(REGION).amazonaws.com/$(IMAGE_NAME):$(IMAGE_TAG)
 
+.PHONY: run
+build-and-run:
+	docker build -t $(IMAGE_NAME) .
+	docker run -p 8501:8501 --env-file .env.dev -v $(shell pwd):/app $(IMAGE_NAME)
+
 .PHONY: build-and-push
 build-and-push:
 	$(shell aws ecr get-login-password --region $(REGION) | docker login --username AWS --password-stdin $(REPO_URL))
@@ -21,3 +26,11 @@ deploy-infra:
 .PHONY: destroy-infra
 destroy-infra:
 	terraform -chdir=terraform destroy
+
+.PHONY: vector-store-openai
+vector-store-openai:
+	poetry run python scripts/vector_store.py FINAL-2017-TCFD-Report-11052018.pdf openai
+
+.PHONY: vector-store-hf
+vector-store-hf:
+	poetry run python scripts/vector_store.py FINAL-2017-TCFD-Report-11052018.pdf hf

@@ -11,13 +11,13 @@ from langchain.vectorstores import Chroma
 
 from config import config
 
+# TODO: move all this into app.py & manage the qa object there
 _ENV = {
     **dotenv_values(".env.dev"),  # load dev env variables
     **os.environ,  # override loaded values with environment variables
 }
 
-if bool(_ENV["LANGCHAIN_DEBUG"]):
-    langchain.debug = True
+langchain.debug = bool(_ENV.get("LANGCHAIN_DEBUG", False))
 
 # Open AI
 llm_type = "openai"

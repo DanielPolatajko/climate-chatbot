@@ -15,8 +15,7 @@ _ENV = {
 }
 
 
-if bool(_ENV["LANGCHAIN_DEBUG"]):
-    langchain.debug = True
+langchain.debug = bool(_ENV.get("LANGCHAIN_DEBUG", False))
 
 
 def add_document_to_vector_store(
