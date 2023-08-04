@@ -1,15 +1,24 @@
 import streamlit as st
 
-from chatbot import answer
+from chatbot import load_qa
 
 # App title
 st.set_page_config(page_title="Climate Chatbot")
+
+# Load QA
+if "qa" not in st.session_state.keys():
+    st.session_state.qa = load_qa()
+
 
 # Store LLM generated responses
 if "messages" not in st.session_state.keys():
     st.session_state.messages = [
         {"role": "assistant", "content": "How may I help you?"}
     ]
+
+# Store chat history
+if "chat_history" not in st.session_state.keys():
+    st.session_state.chat_history = []
 
 # Display chat messages
 for message in st.session_state.messages:
@@ -19,7 +28,12 @@ for message in st.session_state.messages:
 
 # Function for generating LLM response
 def generate_response(prompt_input: str) -> str:
-    return answer(prompt_input)
+    result = st.session_state.qa(
+        {"question": prompt_input, "chat_history": st.session_state.chat_history}
+    )
+    answer = result["answer"]
+    st.session_state.chat_history.append((prompt, answer))
+    return answer
 
 
 # User-provided prompt
