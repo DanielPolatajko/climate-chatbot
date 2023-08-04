@@ -68,6 +68,7 @@ qa = ConversationalRetrievalChain.from_llm(
     llm=llm,
     chain_type="stuff",
     retriever=retriever,
+    combine_docs_chain_kwargs={"prompt": prompt_template},
 )
 
 chat_history = []
