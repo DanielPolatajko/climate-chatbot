@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 
 
 class Config(BaseModel):
@@ -14,7 +14,6 @@ class Config(BaseModel):
     
     QUESTION: {question}
     """
-
 
     PROMPT_TEMPLATE = """
     You are a chatbot assistant answering any questions about climate-related financial disclosures. 
